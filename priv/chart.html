@@ -6,44 +6,49 @@
 <script type="text/javascript" src="/erlb.js"></script>
 <script type="text/javascript">
     var ws = new Object;
+    var time_series;
     var ticker1;
     var ticker2;
     var speeder;
     var pinger;
     var last_time = new Date().getTime() / 1000;
-    var ops = 0, last_ops = 0;
-    var pings = 0;
+    var ops = {ticker1: 0, ticker2: 0, pings: 0, total: 0};
+    var last_ops = ops;
 
     window.onload = function () {
         var chart = new SmoothieChart({
             millisPerPixel:100,
             grid: {millisPerLine:5000, verticalSections:5},
             timestampFormatter:SmoothieChart.timeFormatter,
-            maxValue:10000,
-            minValue:-10000}
+            maxValue:1000,
+            minValue:-1000}
         );
-        window["ticker1"] = new TimeSeries();
         window["chart1"]  = chart;
-        chart.addTimeSeries(window.ticker1, {
-            lineWidth:1.3,
-            strokeStyle:'#00ff00',
-            fillStyle:'rgba(185,255,185,0.30)'
+        window["time_series"].ticker1 = new TimeSeries();
+        chart.addTimeSeries(window.time_series.ticker1, {
+            lineWidth:1.3, strokeStyle:'#00ff00', fillStyle:'rgba(185,255,185,0.30)'
         });
-
+        window["time_series"].ticker1speed = new TimeSeries();
+        chart.addTimeSeries(window.time_series.ticker1speed,
+            {lineWidth:2,strokeStyle:'#ff0000'});
+        
         chart = new SmoothieChart({
             millisPerPixel:100,
             grid: {millisPerLine:5000, verticalSections:5},
             timestampFormatter:SmoothieChart.timeFormatter,
-            maxValue:10000,
-            minValue:-10000}
+            maxValue:1000,
+            minValue:-1000}
         );
-        window["ticker2"] = new TimeSeries();
         window["chart2"]  = chart;
-        chart.addTimeSeries(window.ticker2, {
+        window["time_series"].ticker2 = new TimeSeries();
+        chart.addTimeSeries(window.time_series.ticker2, {
             lineWidth:1.3,
             strokeStyle:'rgba(179,0,179,0.97)',
             fillStyle:'rgba(234,208,234,0.30)'
         });
+        window["time_series"].ticker2speed = new TimeSeries();
+        chart.addTimeSeries(window.time_series.ticker2speed,
+            {lineWidth:2,strokeStyle:'#ff0000'});
 
         chart = new SmoothieChart({
             millisPerPixel:100,
@@ -51,15 +56,15 @@
             timestampFormatter:SmoothieChart.timeFormatter,
             minValue: 0
         });
-        window["speeder"] = new TimeSeries();
+        window["time_series"].speeder = new TimeSeries();
         window["chart3"]  = chart;
-        chart.addTimeSeries(window.speeder, {
+        chart.addTimeSeries(window.time_series.speeder, {
             lineWidth:2,
             strokeStyle:'#dddd00',
             fillStyle:'rgba(255,255,140,0.30)'
         });
-        window["pinger"] = new TimeSeries();
-        chart.addTimeSeries(window.pinger, {
+        window["time_series"].pinger = new TimeSeries();
+        chart.addTimeSeries(window.time_series.pinger, {
             lineWidth:2,
             strokeStyle:'#ff8040'
         });
@@ -129,14 +134,20 @@
                 var arrayBuffer = this.result;
                 var time = new Date().getTime();
                 var times = Math.floor(time / 1000);
-                ops++;
+                ops.total++;
                 if (times !== last_time) {
-                    var n = last_ops ? ops - last_ops : ops;
+                    var n = last_ops.total ? ops.total - last_ops.total : ops.total;
                     document.getElementById('speed').innerHTML = n;
-                    window.speeder.append(time, n);
-                    window.pinger.append(time, pings);
+                    window.time_series.speeder.append(time, n);
+                    window.time_series.pinger.append(time, pings);
+
+                    n = last_ops.ticker1 ? ops.ticker1 - last_ops.ticker1 : ops.ticker1;
+                    window.time_series.ticker1speed.append(time, n);
+                    n = last_ops.ticker2 ? ops.ticker2 - last_ops.ticker2 : ops.ticker2;
+                    window.time_series.ticker2speed.append(time, n);
+                    
                     last_ops  = ops;
-                    pings     = 0;
+                    //ops.total = 0;
                     last_time = times;
                 }
                     
@@ -149,11 +160,12 @@
                     {
                         var series = received_msg.value[0].value;
                         var val    = received_msg.value[1];
-                        if (ops % 100 == 0)
-                            window[series].append(time, val);
+                        ops[series]++;
+                        if (ops[series] % 100 == 0)
+                            window.time_series[series].append(time, val);
                     } else if (cmd.value === 'ping') {
                         var v = received_msg.value[1];
-                        window.pings++;
+                        ops.pings++;
                         if (v > 0) {
                             var b = e.encode(new ErlTuple([cmd, v-1]));
                             ws.send(b);
