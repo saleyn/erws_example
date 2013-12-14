@@ -1,6 +1,8 @@
 ## Example ##
 
-This example shows how to use Websockets and Erlang server.
+This example shows how to use Websockets and Erlang Web server. All messages
+exchanged between client/server are encoded in *binary* format (end-to-end) using
+Erlang External Term serialization.
 
 ### Getting ###
 
