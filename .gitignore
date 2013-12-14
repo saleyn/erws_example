@@ -1,0 +1,5 @@
+/deps
+/ebin
+/log
+priv/erws.boot
+priv/erws.script

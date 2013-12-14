@@ -1,0 +1,11 @@
+{application, erws, [
+    {description, ""},
+    {vsn, "1.0"},
+    {registered, []},
+    {applications, [
+        kernel,stdlib,crypto,cowboy,lager
+        %compiler,syntax_tools
+    ]},
+    {mod, { erws_app, []}},
+    {env, []}
+]}.

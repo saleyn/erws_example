@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script type="text/javascript" src="http://smoothiecharts.org/smoothie.js"></script>
+<!--script type="text/javascript" src="https://rawgithub.com/saleyn/erlb.js/master/erlb.js"></script-->
+<script type="text/javascript" src="/erlb.js"></script>
+<script type="text/javascript">
+    var ws = new Object;
+    var ticker1;
+    var ticker2;
+    var speeder;
+    var pinger;
+    var last_time = new Date().getTime() / 1000;
+    var ops = 0, last_ops = 0;
+    var pings = 0;
+
+    window.onload = function () {
+        var chart = new SmoothieChart({
+            millisPerPixel:100,
+            grid: {millisPerLine:5000, verticalSections:5},
+            timestampFormatter:SmoothieChart.timeFormatter,
+            maxValue:10000,
+            minValue:-10000}
+        );
+        window["ticker1"] = new TimeSeries();
+        window["chart1"]  = chart;
+        chart.addTimeSeries(window.ticker1, {
+            lineWidth:1.3,
+            strokeStyle:'#00ff00',
+            fillStyle:'rgba(185,255,185,0.30)'
+        });
+
+        chart = new SmoothieChart({
+            millisPerPixel:100,
+            grid: {millisPerLine:5000, verticalSections:5},
+            timestampFormatter:SmoothieChart.timeFormatter,
+            maxValue:10000,
+            minValue:-10000}
+        );
+        window["ticker2"] = new TimeSeries();
+        window["chart2"]  = chart;
+        chart.addTimeSeries(window.ticker2, {
+            lineWidth:1.3,
+            strokeStyle:'rgba(179,0,179,0.97)',
+            fillStyle:'rgba(234,208,234,0.30)'
+        });
+
+        chart = new SmoothieChart({
+            millisPerPixel:100,
+            grid: {millisPerLine:5000, verticalSections:5},
+            timestampFormatter:SmoothieChart.timeFormatter,
+            minValue: 0
+        });
+        window["speeder"] = new TimeSeries();
+        window["chart3"]  = chart;
+        chart.addTimeSeries(window.speeder, {
+            lineWidth:2,
+            strokeStyle:'#dddd00',
+            fillStyle:'rgba(255,255,140,0.30)'
+        });
+        window["pinger"] = new TimeSeries();
+        chart.addTimeSeries(window.pinger, {
+            lineWidth:2,
+            strokeStyle:'#ff8040'
+        });
+
+        document.getElementById('input3').onchange = function() {
+            var v = parseInt(this.value);
+            ch = document.getElementById('smoothie-chart1');
+            ch.width = v;
+            ch = document.getElementById('smoothie-chart2');
+            ch.width = v;
+            ch = document.getElementById('speed-chart');
+            ch.width = v;
+        }
+
+        links(false);
+        open();
+    }
+
+    function send(Msg) {
+        var e = new ErlClass();
+        var b = e.encode(new ErlTuple([new ErlAtom(Msg), Msg === 'ping' ? 10000 : "Hello World!"]));
+        ws.send(b);
+        console.log('Message (' + b.byteLength + ') sent');
+    }
+
+    function links(enable) {
+        var a = ["close", "send", "ping", "clear"];
+        for (var i=0; i < a.length; ++i)
+            document.getElementById(a[i]).style.visibility = enable ? 'visible' : 'hidden';
+        document.getElementById("open").style.visibility = enable ? 'hidden' : 'visible';
+    }
+
+    function open() {
+        if (!("WebSocket" in window)) {
+            alert("This browser does not support WebSockets");
+            return;
+        }
+        url = "ws://" + document.URL.replace(/^http:\/\//, '').replace(/\w+(\.html)*$/, 'ws');
+        ws = new WebSocket(url);
+        ws.onopen = function() {
+            console.log('Connected');
+
+            canvas = document.getElementById('smoothie-chart1');
+            window.chart1.streamTo(canvas, 1500);
+            canvas = document.getElementById('smoothie-chart2');
+            window.chart2.streamTo(canvas, 1500);
+            canvas = document.getElementById('speed-chart');
+            window.chart3.streamTo(canvas, 1500);
+
+            links(true);
+        };
+        ws.onclose = function() {
+            console.log('Connection closed');
+            canvas = document.getElementById('smoothie-chart1');
+            window.chart1.stop();
+            canvas = document.getElementById('smoothie-chart2');
+            window.chart2.stop();
+            canvas = document.getElementById('speed-chart');
+            window.chart3.stop();
+
+            links(false);
+        };
+        ws.onmessage = function (evt)
+        {
+            var fileReader = new FileReader();
+            fileReader.onload = function() {
+                var arrayBuffer = this.result;
+                var time = new Date().getTime();
+                var times = Math.floor(time / 1000);
+                ops++;
+                if (times !== last_time) {
+                    var n = last_ops ? ops - last_ops : ops;
+                    document.getElementById('speed').innerHTML = n;
+                    window.speeder.append(time, n);
+                    window.pinger.append(time, pings);
+                    last_ops  = ops;
+                    pings     = 0;
+                    last_time = times;
+                }
+                    
+                var e = new ErlClass();
+                var received_msg = e.decode(arrayBuffer);
+                if (received_msg.type === "tuple" && received_msg.length > 1) {
+                    var cmd = received_msg.value[0];
+                    if (received_msg.length === 3 &&
+                        cmd.type === "atom" && cmd.value.indexOf("ticker") > -1)
+                    {
+                        var series = received_msg.value[0].value;
+                        var val    = received_msg.value[1];
+                        if (ops % 100 == 0)
+                            window[series].append(time, val);
+                    } else if (cmd.value === 'ping') {
+                        var v = received_msg.value[1];
+                        window.pings++;
+                        if (v > 0) {
+                            var b = e.encode(new ErlTuple([cmd, v-1]));
+                            ws.send(b);
+                        }
+                    } else { 
+                        console.log("Received: " + received_msg);
+                        var div = document.createElement("div");
+                        var txt = document.createTextNode("Server says: " + received_msg);
+                        div.appendChild(txt);
+                        document.getElementById('msgs').appendChild(div);
+                    }
+                }
+            };
+            fileReader.readAsArrayBuffer(evt.data);
+        };
+    }
+
+    function clear() {
+        document.getElementById('msgs').innerHTML = "";
+    }
+</script>
+</head>
+<body bgcolor="#808080">
+<div id="sse">
+    <div><canvas id="smoothie-chart1" width="500" height="100"></canvas></div>
+    <div><canvas id="smoothie-chart2" width="500" height="100"></canvas></div>
+    <div><canvas id="speed-chart"     width="500" height="100"></canvas> <span id="speed"></span> msgs/s</div>
+
+    <div class="control">
+        <label class="slider" for="input3">Chart width</label>
+        <input id="input3" type="range" min="20" max="1000"/>
+    </div>
+    <div id="open" ><a href="javascript:open()">Open websocket connection</a></div>
+    <div id="close"><a href="javascript:ws.close()">Close websocket connection</a></div>
+    <a id="send"  href="javascript:send('msg')">Send Message</a>
+    <a id="ping"  href="javascript:send('ping')">Ping</a>
+    <a id="clear" href="javascript:clear()">Clear</a>
+</div>
+<div id="msgs">
+</div>
+
+</body>
+</html>

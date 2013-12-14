@@ -1,0 +1,13 @@
+{release,{"erws","1.0"},
+         {erts,"5.10.1"},
+         [{kernel,"2.16.1"},
+          {stdlib,"1.19.1"},
+          {crypto,"2.3"},
+          {cowlib,"0.4.0"},
+          {ranch,"0.9.0"},
+          {cowboy,"0.9.0"},
+          {compiler,"4.9.1"},
+          {syntax_tools,"1.6.11"},
+          {goldrush,"0.1.5"},
+          {lager,"2.0.1"},
+          {erws,"1.0"}]}. 

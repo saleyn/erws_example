@@ -1,4 +1,7 @@
-erws_example
-============
+## Example ##
 
-Example of using websockets in Erlang
+This example shows how to use Websockets and Erlang server.
+
+### Building ###
+
+    $ make deps
