@@ -6,13 +6,9 @@
 <script type="text/javascript" src="/erlb.js"></script>
 <script type="text/javascript">
     var ws = new Object;
-    var time_series;
-    var ticker1;
-    var ticker2;
-    var speeder;
-    var pinger;
+    var time_series = new Object;
     var last_time = new Date().getTime() / 1000;
-    var ops = {ticker1: 0, ticker2: 0, pings: 0, total: 0};
+    var ops = {ticker1: 0, ticker2: 0, ticker1speed: 0, ticker2speed: 0, pings: 0, total: 0};
     var last_ops = ops;
 
     window.onload = function () {
@@ -137,9 +133,9 @@
                 ops.total++;
                 if (times !== last_time) {
                     var n = last_ops.total ? ops.total - last_ops.total : ops.total;
-                    document.getElementById('speed').innerHTML = n;
-                    window.time_series.speeder.append(time, n);
-                    window.time_series.pinger.append(time, pings);
+                    document.getElementById('speed').innerHTML = ops.total;
+                    window.time_series.speeder.append(time, ops.total);
+                    window.time_series.pinger.append(time, ops.pings);
 
                     n = last_ops.ticker1 ? ops.ticker1 - last_ops.ticker1 : ops.ticker1;
                     window.time_series.ticker1speed.append(time, n);
@@ -147,7 +143,8 @@
                     window.time_series.ticker2speed.append(time, n);
                     
                     last_ops  = ops;
-                    //ops.total = 0;
+                    ops.total = 0;
+                    ops.pings = 0;
                     last_time = times;
                 }
                     

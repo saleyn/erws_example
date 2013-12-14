@@ -70,8 +70,8 @@ websocket_handle(_Any, Req, State) ->
     {ok, Req, State}.
 
 websocket_info({timeout, _Ref, TickerF}, Req, #state{timeout = T, dummy=D} = State) ->
-    erlang:start_timer(TO, self(), TickerF),
-    TickerName = F(),
+    erlang:start_timer(T, self(), TickerF),
+    TickerName = TickerF(),
     X = math:pow(random:uniform() * 2 - 1, 3) * 1000,
     {reply, {binary, term_to_binary({TickerName, X, D})}, Req, State};
 
