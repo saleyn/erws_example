@@ -5,15 +5,15 @@
 % Behaviour cowboy_http_handler
 -export([init/3, handle/2, terminate/3]).
 
-% Behaviour cowboy_http_websocket_handler
+% Behaviour cowboy_websocket_handler
 -export([
     websocket_init/3, websocket_handle/3,
     websocket_info/3, websocket_terminate/3
 ]).
 
 -record(state, {
-    timeout,
-    dummy
+    timeout :: integer(),   % How often to send messages to client
+    dummy   :: binary()     % Dummy payload to send to client
 }).
 
 % Called to know how to dispatch a new connection.
@@ -26,8 +26,8 @@ init({tcp, http}, Req, _Opts) ->
 % Should never get here.
 handle(Req, State) ->
     lager:debug("Unexpected request: ~p", [Req]),
-    {ok, Req2} = cowboy_http_req:reply(404, [
-        {'Content-Type', <<"text/html">>}
+    {ok, Req2} = cowboy_http_req:reply(
+        404, [{'Content-Type', <<"text/html">>}
     ]),
     {ok, Req2, State}.
 
@@ -37,9 +37,14 @@ terminate(_Reason, _Req, _State) ->
 % Called for every new websocket connection.
 websocket_init(_Any, Req, _) ->
     lager:info("New client"),
-    Timeout=10,
-    erlang:start_timer(Timeout, self(), ticker1),
-    erlang:start_timer(Timeout div 3, self(), ticker2),
+    Timeout = 5,
+    F = fun() ->
+        case random:uniform(2) of
+        1 -> ticker1;
+        2 -> ticker2
+        end
+    end,
+    erlang:start_timer(Timeout, self(), F),
     Req2 = cowboy_req:compact(Req),
     {ok, Req2, #state{timeout=Timeout, dummy=binary:copy(<<"0">>, 1024)}, hibernate}.
 
@@ -47,7 +52,7 @@ websocket_init(_Any, Req, _) ->
 websocket_handle({text, Msg}, Req, State) ->
     lager:info("Received: ~p", [Msg]),
     {reply,
-        {text, << "Responding to ", Msg/binary >>},
+        {text, <<"Server's response: ", Msg/binary>>},
         Req, State, hibernate
     };
 
@@ -64,14 +69,11 @@ websocket_handle({binary, Bin}, Req, State) ->
 websocket_handle(_Any, Req, State) ->
     {ok, Req, State}.
 
-websocket_info({timeout, _Ref, Ticker}, Req, #state{timeout = T, dummy=D} = State) ->
-    TO = case Ticker of
-         ticker1 -> T;
-         _       -> T div 3
-         end,
-    erlang:start_timer(TO, self(), Ticker),
-    X = math:pow(random:uniform() * 2 - 1, 5) * 10000,
-    {reply, {binary, term_to_binary({Ticker, X, D})}, Req, State};
+websocket_info({timeout, _Ref, TickerF}, Req, #state{timeout = T, dummy=D} = State) ->
+    erlang:start_timer(TO, self(), TickerF),
+    TickerName = F(),
+    X = math:pow(random:uniform() * 2 - 1, 3) * 1000,
+    {reply, {binary, term_to_binary({TickerName, X, D})}, Req, State};
 
 % Other messages from the system are handled here.
 websocket_info(_Info, Req, State) ->
