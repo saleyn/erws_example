@@ -26,7 +26,7 @@ Open a Web browser (tested with Chrome and Firefox) and point
 to your server's address, port 40000. The click on the link
 "Open a websocket demo" and you should see something that looks like this:
 
-https://raw.github.com/saleyn/erlb.js/master/example.png
+https://raw.github.com/saleyn/erws_example/master/example.png
 
 Clicking on the 'Ping' hyperlink will initiate a message sent back and forth
 between client browser and server 10000 times.
