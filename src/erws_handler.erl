@@ -37,7 +37,7 @@ terminate(_Reason, _Req, _State) ->
 % Called for every new websocket connection.
 websocket_init(_Any, Req, _) ->
     lager:info("New client"),
-    Timeout = 5,
+    Timeout = 1,
     F = fun() ->
         case random:uniform(2) of
         1 -> ticker1;
@@ -72,7 +72,7 @@ websocket_handle(_Any, Req, State) ->
 websocket_info({timeout, _Ref, TickerF}, Req, #state{timeout = T, dummy=D} = State) ->
     erlang:start_timer(T, self(), TickerF),
     TickerName = TickerF(),
-    X = math:pow(random:uniform() * 2 - 1, 3) * 1000,
+    X = math:pow(random:uniform() * 2 - 1, 3) * 250,
     {reply, {binary, term_to_binary({TickerName, X, D})}, Req, State};
 
 % Other messages from the system are handled here.

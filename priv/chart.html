@@ -14,10 +14,10 @@
     window.onload = function () {
         var chart = new SmoothieChart({
             millisPerPixel:100,
-            grid: {millisPerLine:5000, verticalSections:5},
+            grid: {millisPerLine:5000, verticalSections:6},
             timestampFormatter:SmoothieChart.timeFormatter,
-            maxValue:1000,
-            minValue:-1000}
+            maxValue:300,
+            minValue:-300}
         );
         window["chart1"]  = chart;
         window["time_series"].ticker1 = new TimeSeries();
@@ -30,10 +30,10 @@
         
         chart = new SmoothieChart({
             millisPerPixel:100,
-            grid: {millisPerLine:5000, verticalSections:5},
+            grid: {millisPerLine:5000, verticalSections:6},
             timestampFormatter:SmoothieChart.timeFormatter,
-            maxValue:1000,
-            minValue:-1000}
+            maxValue:300,
+            minValue:-300}
         );
         window["chart2"]  = chart;
         window["time_series"].ticker2 = new TimeSeries();
@@ -48,7 +48,7 @@
 
         chart = new SmoothieChart({
             millisPerPixel:100,
-            grid: {millisPerLine:5000, verticalSections:5},
+            grid: {millisPerLine:5000, verticalSections:6},
             timestampFormatter:SmoothieChart.timeFormatter,
             minValue: 0
         });
@@ -132,19 +132,18 @@
                 var times = Math.floor(time / 1000);
                 ops.total++;
                 if (times !== last_time) {
-                    var n = last_ops.total ? ops.total - last_ops.total : ops.total;
                     document.getElementById('speed').innerHTML = ops.total;
                     window.time_series.speeder.append(time, ops.total);
                     window.time_series.pinger.append(time, ops.pings);
 
-                    n = last_ops.ticker1 ? ops.ticker1 - last_ops.ticker1 : ops.ticker1;
-                    window.time_series.ticker1speed.append(time, n);
-                    n = last_ops.ticker2 ? ops.ticker2 - last_ops.ticker2 : ops.ticker2;
-                    window.time_series.ticker2speed.append(time, n);
+                    window.time_series.ticker1speed.append(time, ops.ticker1);
+                    window.time_series.ticker2speed.append(time, ops.ticker2);
                     
                     last_ops  = ops;
                     ops.total = 0;
                     ops.pings = 0;
+                    ops.ticker1 = 0;
+                    ops.ticker2 = 0;
                     last_time = times;
                 }
                     
