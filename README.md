@@ -34,7 +34,8 @@ between client browser and server 10000 times.
 
 The green and purple time-series represent random values sent from the server
 in the form ``{TickerX, Value::integer(), Dummy::binary()}`` where TickerX is
-either ``ticker1`` or ``ticker2``, and the Dummy is dummy payload of size 1Kb.
+either ``ticker1`` or ``ticker2``, Value is a random value used to plot in the
+corresponding time-series, and the Dummy is dummy payload of size 1Kb.
 
 The red time-series is the messages per secord rate of ``ticker1`` and ``ticker2``
 respectively. Yellow time-series is the total inbound messages per second rate,
