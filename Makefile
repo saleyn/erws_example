@@ -3,7 +3,7 @@ DEPS_DIRS=$(EBIN_DEPS:%=-pa ./%)
 
 .PHONY: rebar-check all deps compile run
 
-all: compile priv/erws.boot priv/erlb.js
+all: compile priv/erlb.js priv/erws.boot
 
 rebar-check:
 	@if ! which rebar > /dev/null 2>&1 ; then \
@@ -11,17 +11,19 @@ rebar-check:
 		exit 1; \
 	fi
 
-deps: rebar-check
-	rebar get-deps compile
+deps:
+	rm -f priv/erlb.js
+	rebar get-deps
+	$(MAKE) all
 
 compile: rebar-check
 	rebar compile skip_deps=true
 
 clean:
-	rm -fr ebin log
+	rm -fr ebin log priv/erlb.js priv/erws.{script,boot}
 
 dist-clean: clean
-	rm -fr deps
+	rm -fr deps priv/erlb.js priv/erws.{script,boot}
 
 priv/erws.boot: priv/erws.rel
 	erlc -pa ebin $(DEPS_DIRS) -o priv $<
