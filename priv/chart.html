@@ -80,8 +80,7 @@
     }
 
     function send(Msg) {
-        var e = new ErlClass();
-        var b = e.encode(new ErlTuple([new ErlAtom(Msg), Msg === 'ping' ? 10000 : "Hello World!"]));
+        var b = Erl.encode(Erl.tuple([Erl.atom(Msg), Msg === 'ping' ? 10000 : "Hello World!"]));
         ws.send(b);
         console.log('Message (' + b.byteLength + ') sent');
     }
@@ -147,8 +146,7 @@
                     last_time = times;
                 }
                     
-                var e = new ErlClass();
-                var received_msg = e.decode(arrayBuffer);
+                var received_msg = Erl.decode(arrayBuffer);
                 if (received_msg.type === "tuple" && received_msg.length > 1) {
                     var cmd = received_msg.value[0];
                     if (received_msg.length === 3 &&
@@ -163,7 +161,7 @@
                         var v = received_msg.value[1];
                         ops.pings++;
                         if (v > 0) {
-                            var b = e.encode(new ErlTuple([cmd, v-1]));
+                            var b = Erl.encode(Erl.tuple([cmd, v-1]));
                             ws.send(b);
                         }
                     } else { 
