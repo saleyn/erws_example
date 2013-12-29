@@ -25,7 +25,8 @@ dist-clean: clean
 	rm -fr deps priv/erlb.js priv/release.es priv/erws.{rel,script,boot}
 
 priv/erws.boot: priv/erws.rel
-
+	erlc $(LIB_ARGS) -o $(@D) $<
+	
 priv/erws.rel: src/erws.rel priv/release.es
 	escript priv/release.es $< $@
 
