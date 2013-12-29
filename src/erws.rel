@@ -1,0 +1,13 @@
+{release,{"erws","1.0"},
+         {erts,""},
+         [{kernel,""},
+          {stdlib,""},
+          {crypto,""},
+          {cowlib,""},
+          {ranch,""},
+          {cowboy,""},
+          {compiler,""},
+          {syntax_tools,""},
+          {goldrush,""},
+          {lager,""},
+          {erws,""}]}. 

@@ -2,6 +2,8 @@
 -behaviour(cowboy_http_handler).
 -behaviour(cowboy_websocket_handler).
 
+-compile([{parse_transform, lager_transform}]).
+
 % Behaviour cowboy_http_handler
 -export([init/3, handle/2, terminate/3]).
 

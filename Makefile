@@ -1,5 +1,5 @@
-EBIN_DEPS=$(wildcard deps/*/ebin)
-DEPS_DIRS=$(EBIN_DEPS:%=-pa ./%)
+EBIN_DEPS=ebin $(wildcard deps/*/ebin)
+LIB_ARGS=$(EBIN_DEPS:%=-pa %)
 
 .PHONY: rebar-check all deps compile run
 
@@ -12,24 +12,29 @@ rebar-check:
 	fi
 
 deps:
-	rm -f priv/erlb.js
-	rebar get-deps
-	$(MAKE) all
+	rebar get-deps 
+	$(MAKE) skip_deps=false all
 
 compile: rebar-check
-	rebar compile skip_deps=true
+	rebar compile skip_deps=$(if $(skip_deps),$(skip_deps),true)
 
 clean:
-	rm -fr ebin log priv/erlb.js priv/erws.{script,boot}
+	rm -fr ebin log priv/erlb.js priv/erws.{rel,script,boot}
 
 dist-clean: clean
-	rm -fr deps priv/erlb.js priv/erws.{script,boot}
+	rm -fr deps priv/erlb.js priv/release.es priv/erws.{rel,script,boot}
 
 priv/erws.boot: priv/erws.rel
-	erlc -pa ebin $(DEPS_DIRS) -o priv $<
+
+priv/erws.rel: src/erws.rel priv/release.es
+	escript priv/release.es $< $@
+
+priv/release.es:
+	curl -s https://raw.github.com/saleyn/util/master/bin/release.es | \
+	awk '/^%%!/ { print "%%! $(LIB_ARGS)" } !/^%%!/ {print}' > $@
 
 priv/erlb.js:
 	curl -s -o $@ https://raw.github.com/saleyn/erlb.js/master/erlb.js
 
 run:
-	erl -pa ebin $(DEPS_DIRS) -boot priv/erws
+	erl $(LIB_ARGS) -boot priv/erws
