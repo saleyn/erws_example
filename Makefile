@@ -37,5 +37,10 @@ priv/release.es:
 priv/erlb.js:
 	curl -s -o $@ https://raw.github.com/saleyn/erlb.js/master/erlb.js
 
+src/erws.rel:
+	relx --verbose=0
+	cp _rel/releases/1.0/erws.rel $@
+	rm -fr _rel
+
 run:
 	erl $(LIB_ARGS) -boot priv/erws
