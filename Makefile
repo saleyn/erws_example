@@ -3,8 +3,6 @@ LIB_ARGS=$(EBIN_DEPS:%=-pa %)
 
 .PHONY: all deps run
 
-all:: priv/erlb.js priv/erws.boot
-
 # See LICENSE for licensing information.
 
 PROJECT = erws
@@ -24,6 +22,8 @@ dep_lager  = git https://github.com/basho/lager.git   master
 # Standard targets.
 
 include erlang.mk
+
+all:: priv/erlb.js priv/erws.boot
 
 # Also dialyze the tests.
 

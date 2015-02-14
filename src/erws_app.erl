@@ -29,7 +29,7 @@ start(_StartType, _StartArgs) ->
         erws_websocket, 100, [{port, 40000}],
         [{env, [{dispatch, Dispatch}]}]
     ),
-    lager:info("For more logging verbosity run:\n"
+    lager:info("For more detailed logging verbosity run:\n"
                "  lager:set_loglevel(lager_console_backend, debug).\n", []),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
