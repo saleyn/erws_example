@@ -2,10 +2,10 @@
 
 -compile([{parse_transform, lager_transform}]).
 
-% Behaviour cowboy_http_handler
+% Handle HTTP requests
 -export([init/2, handle/2, terminate/3]).
 
-% Behaviour cowboy_websocket_handler
+% Handle Websocket requests after upgrate of connection from HTTP
 -export([
     websocket_handle/3,
     websocket_info/3
