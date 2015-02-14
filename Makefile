@@ -13,6 +13,8 @@ rebar-check:
 
 deps:
 	rebar get-deps 
+	sed -i 's!cowlib.git", "1.0.0"!cowlib.git", "master"!' deps/cowboy/rebar.config
+	$(MAKE) -C deps/cowboy
 	$(MAKE) skip_deps=false all
 
 compile: rebar-check
@@ -31,11 +33,11 @@ priv/erws.rel: src/erws.rel priv/release.es
 	escript priv/release.es $< $@
 
 priv/release.es:
-	curl -s https://raw.github.com/saleyn/util/master/bin/release.es | \
+	wget -q -O - https://raw.github.com/saleyn/util/master/bin/release.es | \
 	awk '/^%%!/ { print "%%! $(LIB_ARGS)" } !/^%%!/ {print}' > $@
 
 priv/erlb.js:
-	curl -s -o $@ https://raw.github.com/saleyn/erlb.js/master/erlb.js
+	wget -O $@ -q https://raw.github.com/saleyn/erlb.js/master/erlb.js
 
 src/erws.rel:
 	relx --verbose=0
