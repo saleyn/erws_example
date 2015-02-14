@@ -2,6 +2,8 @@
 -behaviour(application).
 -behaviour(supervisor).
 
+-compile([{parse_transform, lager_transform}]).
+
 -export([start/2, stop/1]).
 
 -export([init/1]).
@@ -14,10 +16,10 @@ start(_StartType, _StartArgs) ->
     %% erws_handler, without any additional options.
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/", cowboy_static, {file, "priv/index.html"}},
+            {"/",           cowboy_static, {file, "priv/index.html"}},
             {"/chart.html", cowboy_static, {file, "priv/chart.html"}},
-            {"/erlb.js", cowboy_static, {file, "priv/erlb.js"}},
-            {'_', erws_handler, []}
+            {"/erlb.js",    cowboy_static, {file, "priv/erlb.js"}},
+            {'_',           erws_handler,  []}
         ]}
     ]),
 
@@ -27,6 +29,8 @@ start(_StartType, _StartArgs) ->
         erws_websocket, 100, [{port, 40000}],
         [{env, [{dispatch, Dispatch}]}]
     ),
+    lager:info("For more logging verbosity run:\n"
+               "  lager:set_loglevel(lager_console_backend, debug).\n", []),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 stop(_State) ->

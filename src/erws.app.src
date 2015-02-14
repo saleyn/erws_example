@@ -2,6 +2,7 @@
     {description, ""},
     {vsn, "1.0"},
     {registered, []},
+    {modules, []},
     {applications, [
         kernel,stdlib,crypto,cowboy,lager
         %compiler,syntax_tools

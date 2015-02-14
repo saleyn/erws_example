@@ -1,6 +1,9 @@
-/deps
-/ebin
-/log
+.rebar
+.erlang.mk.packages*
+deps
+ebin
+log
+erl_crash.dump
 priv/erws.boot
 priv/erws.script
 priv/erlb.js

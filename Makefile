@@ -1,30 +1,40 @@
 EBIN_DEPS=ebin $(wildcard deps/*/ebin)
 LIB_ARGS=$(EBIN_DEPS:%=-pa %)
 
-.PHONY: rebar-check all deps compile run
+.PHONY: all deps run
 
-all: compile priv/erlb.js priv/erws.boot
+all:: priv/erlb.js priv/erws.boot
 
-rebar-check:
-	@if ! which rebar > /dev/null 2>&1 ; then \
-   		echo "rebar not found in PATH. Get it at https://github.com/basho/rebar.git"; \
-		exit 1; \
-	fi
+# See LICENSE for licensing information.
 
-deps:
-	rebar get-deps 
-	sed -i 's!cowlib.git", "1.0.0"!cowlib.git", "master"!' deps/cowboy/rebar.config
-	$(MAKE) -C deps/cowboy
-	$(MAKE) skip_deps=false all
+PROJECT = erws
 
-compile: rebar-check
-	rebar compile skip_deps=$(if $(skip_deps),$(skip_deps),true)
+# Options.
 
-clean:
-	rm -fr ebin log priv/erlb.js priv/erws.{rel,script,boot}
+ERLC_OPTS ?= -Werror +debug_info +warn_export_all +warn_export_vars \
+             +warn_shadow_vars +warn_obsolete_guard #+warn_missing_spec
+PLT_APPS = crypto public_key ssl
 
-dist-clean: clean
-	rm -fr deps priv/erlb.js priv/release.es priv/erws.{rel,script,boot}
+# Dependencies.
+
+DEPS = cowboy lager
+dep_cowboy = git https://github.com/saleyn/cowboy.git master
+dep_lager  = git https://github.com/basho/lager.git   master
+
+# Standard targets.
+
+include erlang.mk
+
+# Also dialyze the tests.
+
+# DIALYZER_OPTS += --src -r test
+
+clean::
+	rm -fr ebin log priv/erlb.js priv/erws.{rel,script,boot} erl_crash.dump
+
+dist-clean::
+	rm -fr deps priv/erlb.js priv/release.es priv/erws.{rel,script,boot} \
+           .erlang.mk.packages* .rebar
 
 priv/erws.boot: priv/erws.rel
 	erlc $(LIB_ARGS) -o $(@D) $<
