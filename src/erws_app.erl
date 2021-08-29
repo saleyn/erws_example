@@ -2,11 +2,14 @@
 -behaviour(application).
 -behaviour(supervisor).
 
--compile([{parse_transform, lager_transform}]).
+-include_lib("kernel/include/logger.hrl").
 
--export([start/2, stop/1]).
+-export([start/0, start/2, stop/1]).
 
 -export([init/1]).
+
+start() ->
+    application:ensure_all_started(erws).
 
 %% Application's callback
 
@@ -25,12 +28,12 @@ start(_StartType, _StartArgs) ->
 
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
     %% Listen in 10100/tcp for http connections.
-    cowboy:start_http(
-        erws_websocket, 100, [{port, 40000}],
-        [{env, [{dispatch, Dispatch}]}]
+    cowboy:start_clear(
+        erws_websocket, [{port, 40000}],
+        #{env => #{dispatch => Dispatch}}
     ),
-    lager:info("For more detailed logging verbosity run:\n"
-               "  lager:set_loglevel(lager_console_backend, debug).\n", []),
+    ?LOG_NOTICE("For more detailed logging verbosity run:\n"
+                "  logger:set_application_level(erws, info).\n", []),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 stop(_State) ->

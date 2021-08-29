@@ -4,8 +4,7 @@
     {registered, []},
     {modules, []},
     {applications, [
-        kernel,stdlib,crypto,cowboy,lager
-        %compiler,syntax_tools
+        kernel,stdlib,crypto,cowboy
     ]},
     {mod, { erws_app, []}},
     {env, []}

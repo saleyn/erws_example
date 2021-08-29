@@ -9,3 +9,5 @@ priv/erws.script
 priv/erlb.js
 priv/erws.rel
 priv/release.es
+_build
+var

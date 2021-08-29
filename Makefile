@@ -1,29 +1,21 @@
-EBIN_DEPS=ebin $(wildcard deps/*/ebin)
-LIB_ARGS=$(EBIN_DEPS:%=-pa %)
-
 .PHONY: all deps run
-
-# See LICENSE for licensing information.
 
 PROJECT = erws
 
 # Options.
 
-ERLC_OPTS ?= -Werror +debug_info +warn_export_all +warn_export_vars \
-             +warn_shadow_vars +warn_obsolete_guard #+warn_missing_spec
-PLT_APPS = crypto public_key ssl
-
 # Dependencies.
-
-DEPS = cowboy lager
-dep_cowboy = git https://github.com/saleyn/cowboy.git master
-dep_lager  = git https://github.com/basho/lager.git   master
 
 # Standard targets.
 
-include erlang.mk
+all:: priv/erlb.js # priv/erws.boot
+	rebar3 compile
 
-all:: priv/erlb.js priv/erws.boot
+release:
+	APP_ROOT=var rebar3 release
+
+deps:
+	rebar3 get-deps
 
 # Also dialyze the tests.
 
@@ -32,9 +24,9 @@ all:: priv/erlb.js priv/erws.boot
 clean::
 	rm -fr ebin log priv/erlb.js priv/erws.{rel,script,boot} erl_crash.dump
 
-dist-clean::
+dist-clean distclean:
 	rm -fr deps priv/erlb.js priv/release.es priv/erws.{rel,script,boot} \
-           .erlang.mk.packages* .rebar
+           .erlang.mk.packages* .rebar _build
 
 priv/erws.boot: priv/erws.rel
 	erlc $(LIB_ARGS) -o $(@D) $<
@@ -55,4 +47,5 @@ src/erws.rel:
 	rm -fr _rel
 
 run:
-	erl $(LIB_ARGS) -boot priv/erws
+	@#erl $(LIB_ARGS) -boot priv/erws
+	APP_ROOT=var rebar3 shell
