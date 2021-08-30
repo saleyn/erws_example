@@ -8,13 +8,13 @@ PROJECT = erws
 
 # Standard targets.
 
-all:: priv/erlb.js # priv/erws.boot
+all:: deps # priv/erws.boot
 	rebar3 compile
 
-release:
+release: deps
 	APP_ROOT=var rebar3 release
 
-deps:
+deps: priv/erlb.js
 	rebar3 get-deps
 
 # Also dialyze the tests.
@@ -30,7 +30,7 @@ dist-clean distclean:
 
 priv/erws.boot: priv/erws.rel
 	erlc $(LIB_ARGS) -o $(@D) $<
-	
+
 priv/erws.rel: src/erws.rel priv/release.es
 	escript priv/release.es $< $@
 
